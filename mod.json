@@ -1,0 +1,73 @@
+{
+    "geode": "3.7.1",
+    "gd": {
+        "win":     "2.2074",
+        "mac":     "2.2074",
+        "android": "2.2074"
+    },
+    "id":          "author.bot-toolkit",
+    "name":        "Bot Toolkit",
+    "version":     "1.0.0",
+    "developer":   "author",
+    "description": "Frame-accurate replay bot, TAS toolkit, trajectory predictor, hitbox viewer, FPS/TPS control, and frame stepper for Geometry Dash.",
+    "repository":  "https://github.com/EnterThisUsername/zzbot",
+
+    "dependencies": [],
+
+    "settings": {
+        "target-fps": {
+            "name":    "Target FPS",
+            "description": "Render frame cap (0 = unlimited)",
+            "type":    "float",
+            "default": 1440.0,
+            "min":     0.0,
+            "max":     960.0
+        },
+        "target-tps": {
+            "name":    "Physics TPS",
+            "description": "Physics tick rate (default 240)",
+            "type":    "float",
+            "default": 1440.0,
+            "min":     1.0,
+            "max":     960.0
+        },
+        "speed-multiplier": {
+            "name":    "Speed Multiplier",
+            "description": "Game speed scale (1.0 = normal, 0.5 = half, 0.01 = 1%)",
+            "type":    "float",
+            "default": 1.0,
+            "min":     0.01,
+            "max":     10.0
+        },
+        "show-hitboxes": {
+            "name":    "Show Hitboxes",
+            "type":    "bool",
+            "default": false
+        },
+        "show-hitbox-trail": {
+            "name":    "Show Hitbox Trail",
+            "type":    "bool",
+            "default": false
+        },
+        "hitbox-trail-length": {
+            "name":    "Hitbox Trail Length",
+            "description": "Number of frames to keep in the trail",
+            "type":    "int",
+            "default": 240,
+            "min":     10,
+            "max":     2400
+        },
+        "show-trajectory": {
+            "name":    "Show Trajectory",
+            "type":    "bool",
+            "default": false
+        },
+        "trajectory-steps": {
+            "name":    "Trajectory Lookahead (ticks)",
+            "type":    "int",
+            "default": 240,
+            "min":     30,
+            "max":     960
+        }
+    }
+}
