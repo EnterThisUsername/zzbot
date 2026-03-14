@@ -1,6 +1,6 @@
 # zzBot — Geode Mod for Geometry Dash 2.2081
 
-A comprehensive TAS and replay mod: frame-accurate macro recording/playback,
+A TAS and replay mod: frame-accurate macro recording/playback,
 speed control, FPS/TPS override, trajectory prediction, hitbox visualisation,
 and a frame-by-frame stepper.
 
@@ -24,8 +24,7 @@ Repository: https://github.com/EnterThisUsername/zzbot
 
 > **Windows:** Always run these commands inside a **"Developer Command Prompt for VS 2022"**
 > (or a terminal where `vcvarsall.bat` has been sourced). This puts `ninja.exe`
-> and the MSVC compiler on `PATH` — which is exactly what was missing when you
-> saw the `nmake not found` error.
+> and the MSVC compiler on `PATH`
 
 ```bat
 REM 1. Install Geode CLI and SDK  (https://geode-sdk.org/install)
