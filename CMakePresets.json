@@ -1,0 +1,35 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name":        "win-release",
+            "displayName": "Windows Release (Ninja + MSVC)",
+            "generator":   "Ninja",
+            "binaryDir":   "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE":          "RelWithDebInfo",
+                "CMAKE_SYSTEM_NAME":         "Windows"
+            }
+        },
+        {
+            "name":        "win-debug",
+            "displayName": "Windows Debug (Ninja + MSVC)",
+            "generator":   "Ninja",
+            "binaryDir":   "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_SYSTEM_NAME": "Windows"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name":            "win-release",
+            "configurePreset": "win-release"
+        },
+        {
+            "name":            "win-debug",
+            "configurePreset": "win-debug"
+        }
+    ]
+}

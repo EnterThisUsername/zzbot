@@ -13,29 +13,48 @@ Repository: https://github.com/EnterThisUsername/zzbot
 | Dependency | Version |
 |---|---|
 | Geometry Dash | 2.2081 (Steam / Mac) |
-| Geode SDK | ≥ 3.7.1 |
+| Geode SDK | ≥ 5.3.0 |
 | CMake | ≥ 3.21 |
-| C++ compiler | MSVC 2022 / Clang 15+ |
+| Visual Studio | 2022 (Windows) — must include the **"Desktop development with C++"** workload |
+| Ninja | Ships with Visual Studio; used as the CMake generator |
 
 ---
 
 ## Build
 
-```bash
-# 1. Install Geode CLI and SDK (https://geode-sdk.org/install)
+> **Windows:** Always run these commands inside a **"Developer Command Prompt for VS 2022"**
+> (or a terminal where `vcvarsall.bat` has been sourced). This puts `ninja.exe`
+> and the MSVC compiler on `PATH` — which is exactly what was missing when you
+> saw the `nmake not found` error.
+
+```bat
+REM 1. Install Geode CLI and SDK  (https://geode-sdk.org/install)
 geode sdk install
 
-# 2. Clone and configure
+REM 2. Clone
 git clone https://github.com/EnterThisUsername/zzbot
 cd zzbot
-cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
-# 3. Build
-cmake --build build --config RelWithDebInfo
+REM 3. Configure  (CMakePresets.json selects Ninja automatically)
+cmake --preset win-release
 
-# 4. Install directly into Geode's mods folder
+REM 4. Build
+cmake --build --preset win-release
+
+REM 5. Install into Geode's mods folder
 cmake --build build --target install
 ```
+
+If you prefer not to use presets:
+
+```bat
+cmake -B build -G "Ninja" -DCMAKE_BUILD_TYPE=RelWithDebInfo
+cmake --build build
+```
+
+Never use `cmake -B build` on Windows without `-G` — CMake will try to detect
+a Make tool and fall back to NMake, which is not installed in a standard VS
+setup.
 
 ---
 
@@ -102,7 +121,7 @@ the simulation remains deterministic at any chosen rate.
 | `C` | Retreat one tick (resets + replays to tick−1) |
 | `V` | Exit stepper, resume at 50% speed |
 
-Enter via the control panel **Enter Stepper** button.  The scheduler
+Enter via the control panel **Enter Stepper** button. The scheduler
 time-scale is set to `0` between steps so nothing advances without your input.
 
 ### Trajectory Prediction
@@ -115,8 +134,7 @@ Configurable lookahead (30–960 ticks) in Geode settings.
 ### Hitbox Visualiser
 - **Hitboxes** — draws the player's outer collision rect in cyan each frame.
 - **HB Trail** — records the hitbox rect every physics tick and renders a
-  yellow fading trail showing where the player has been. Length and opacity
-  are configurable.
+  yellow fading trail showing where the player has been.
 
 ---
 
@@ -162,7 +180,6 @@ For a macro to replay identically:
 - The level must be the same revision and the same song offset.
 - Speed must be `1.0` during playback (or the same speed used during recording).
 - TPS must match between recording and playback sessions.
-- No external mods that alter physics timing should be active simultaneously.
 
 The `.zzb` file stores only logical tick indices, not wall-clock times, so the
 replay is independent of FPS and system performance.
