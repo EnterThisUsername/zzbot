@@ -17,12 +17,12 @@ void ReplaySystem::startRecording() {
     m_macro.frames.clear();
     m_macro.name = "unnamed";
     m_state      = BotState::Recording;
-    log::info("[BotToolkit] Recording started.");
+    log::info("[zzBot] Recording started.");
 }
 
 void ReplaySystem::stopRecording() {
     m_state = BotState::Idle;
-    log::info("[BotToolkit] Recording stopped. {} frames captured.",
+    log::info("[zzBot] Recording stopped. {} frames captured.",
               m_macro.frames.size());
 }
 
@@ -45,18 +45,18 @@ void ReplaySystem::recordInput(int tick, int button, bool isPress, bool player2)
 
 void ReplaySystem::startPlayback() {
     if (m_macro.frames.empty()) {
-        log::warn("[BotToolkit] No macro loaded.");
+        log::warn("[zzBot] No macro loaded.");
         return;
     }
     m_playIndex = 0;
     m_state     = BotState::Playing;
-    log::info("[BotToolkit] Playback started ({} frames).",
+    log::info("[zzBot] Playback started ({} frames).",
               m_macro.frames.size());
 }
 
 void ReplaySystem::stopPlayback() {
     m_state = BotState::Idle;
-    log::info("[BotToolkit] Playback stopped at index {}.", m_playIndex);
+    log::info("[zzBot] Playback stopped at index {}.", m_playIndex);
 }
 
 bool ReplaySystem::tickPlayback(int tick) {
@@ -113,10 +113,10 @@ bool ReplaySystem::saveToFile(const std::string& path) const {
         std::ofstream ofs(path);
         if (!ofs.is_open()) return false;
         ofs << root.dump(2);
-        log::info("[BotToolkit] Macro saved to '{}'.", path);
+        log::info("[zzBot] Macro saved to '{}'.", path);
         return true;
     } catch (const std::exception& e) {
-        log::error("[BotToolkit] Save failed: {}", e.what());
+        log::error("[zzBot] Save failed: {}", e.what());
         return false;
     }
 }
@@ -142,11 +142,11 @@ bool ReplaySystem::loadFromFile(const std::string& path) {
         // Ensure frames are ordered by tick (in case of manual edits).
         std::sort(m_macro.frames.begin(), m_macro.frames.end());
 
-        log::info("[BotToolkit] Macro '{}' loaded ({} frames).",
+        log::info("[zzBot] Macro '{}' loaded ({} frames).",
                   m_macro.name, m_macro.frames.size());
         return true;
     } catch (const std::exception& e) {
-        log::error("[BotToolkit] Load failed: {}", e.what());
+        log::error("[zzBot] Load failed: {}", e.what());
         return false;
     }
 }

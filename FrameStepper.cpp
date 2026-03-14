@@ -20,7 +20,7 @@ void FrameStepper::enter() {
     if (auto* s = CCDirector::get()->getScheduler())
         s->setTimeScale(0.0f);
 
-    log::info("[BotToolkit] Frame stepper ACTIVE at tick {}.", m_tick);
+    log::info("[zzBot] Frame stepper ACTIVE at tick {}.", m_tick);
 }
 
 void FrameStepper::exit() {
@@ -30,7 +30,7 @@ void FrameStepper::exit() {
     // Resume at 50% speed as a safe, controllable default.
     SpeedControl::get()->setSpeed(0.5f);
 
-    log::info("[BotToolkit] Frame stepper exited. Resuming at 50% speed.");
+    log::info("[zzBot] Frame stepper exited. Resuming at 50% speed.");
 }
 
 void FrameStepper::stepForward() {
@@ -48,7 +48,7 @@ void FrameStepper::stepBack() {
     if (!m_active || m_tick <= 0) return;
 
     int targetTick = m_tick - 1;
-    log::info("[BotToolkit] Stepping back to tick {}.", targetTick);
+    log::info("[zzBot] Stepping back to tick {}.", targetTick);
 
     // Stop any ongoing playback.
     auto* rs = ReplaySystem::get();

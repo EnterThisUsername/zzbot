@@ -44,9 +44,9 @@ $on_mod(Loaded) {
     TrajectorySystem::get()->setLookaheadTicks(
         static_cast<int>(mod->getSettingValue<int64_t>("trajectory-steps")));
 
-    log::info("[BotToolkit] Mod loaded successfully.");
-    log::info("[BotToolkit]  FPS target : {:.0f}", fps);
-    log::info("[BotToolkit]  TPS target : {:.0f}", tps);
-    log::info("[BotToolkit]  Hitboxes   : {}", HitboxViewer::get()->showHitbox());
-    log::info("[BotToolkit]  Trajectory : {}", TrajectorySystem::get()->isEnabled());
+    log::info("[zzBot] Mod loaded successfully.");
+    log::info("[zzBot]  FPS target : {:.0f}", fps);
+    log::info("[zzBot]  TPS target : {:.0f}", tps);
+    log::info("[zzBot]  Hitboxes   : {}", HitboxViewer::get()->showHitbox());
+    log::info("[zzBot]  Trajectory : {}", TrajectorySystem::get()->isEnabled());
 }

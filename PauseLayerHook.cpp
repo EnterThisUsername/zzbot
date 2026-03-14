@@ -5,7 +5,7 @@
 using namespace geode::prelude;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PauseLayer hook — adds the "Bot Toolkit" button
+// PauseLayer hook — adds the "zzBot" button
 // ─────────────────────────────────────────────────────────────────────────────
 
 class $modify(BotPauseLayer, PauseLayer) {
@@ -20,7 +20,7 @@ private:
     void addBotButton() {
         // Build a compact sprite button using a standard GD button frame.
         auto* spr = ButtonSprite::create(
-            "Bot Toolkit",
+            "zzBot",
             "goldFont.fnt",
             "GJ_button_06.png",
             0.7f

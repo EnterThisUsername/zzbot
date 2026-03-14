@@ -1,8 +1,10 @@
-# Bot Toolkit — Geode Mod for Geometry Dash 2.2
+# zzBot — Geode Mod for Geometry Dash 2.2081
 
 A comprehensive TAS and replay mod: frame-accurate macro recording/playback,
 speed control, FPS/TPS override, trajectory prediction, hitbox visualisation,
 and a frame-by-frame stepper.
+
+Repository: https://github.com/EnterThisUsername/zzbot
 
 ---
 
@@ -10,7 +12,7 @@ and a frame-by-frame stepper.
 
 | Dependency | Version |
 |---|---|
-| Geometry Dash | 2.2074 (Steam / Mac) |
+| Geometry Dash | 2.2081 (Steam / Mac) |
 | Geode SDK | ≥ 3.7.1 |
 | CMake | ≥ 3.21 |
 | C++ compiler | MSVC 2022 / Clang 15+ |
@@ -24,8 +26,8 @@ and a frame-by-frame stepper.
 geode sdk install
 
 # 2. Clone and configure
-git clone https://github.com/author/bot-toolkit
-cd bot-toolkit
+git clone https://github.com/EnterThisUsername/zzbot
+cd zzbot
 cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
 
 # 3. Build
@@ -45,14 +47,14 @@ with the physics tick they occurred on, not every frame.
 
 | Action | How |
 |---|---|
-| Start Recording | Pause menu → Bot Toolkit → **Record** |
+| Start Recording | Pause menu → zzBot → **Record** |
 | Stop Recording | **Stop** button |
 | Start Playback | **Play** button |
 | Stop Playback | **Stop** button |
-| Save macro | **Save** → file picker (`.btm` JSON) |
+| Save macro | **Save** → file picker (`.zzb` JSON) |
 | Load macro | **Load** → file picker |
 
-Macro file format (`.btm`, JSON):
+Macro file format (`.zzb`, JSON):
 ```json
 {
   "name": "my_run",
@@ -162,7 +164,7 @@ For a macro to replay identically:
 - TPS must match between recording and playback sessions.
 - No external mods that alter physics timing should be active simultaneously.
 
-The `.btm` file stores only logical tick indices, not wall-clock times, so the
+The `.zzb` file stores only logical tick indices, not wall-clock times, so the
 replay is independent of FPS and system performance.
 
 ---

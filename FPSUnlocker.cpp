@@ -8,7 +8,7 @@ FPSUnlocker* FPSUnlocker::get() {
 void FPSUnlocker::setTargetFPS(float fps) {
     m_targetFPS = fps;
     apply();
-    log::info("[BotToolkit] FPS target set to {:.1f}", fps);
+    log::info("[zzBot] FPS target set to {:.1f}", fps);
 }
 
 void FPSUnlocker::apply() {

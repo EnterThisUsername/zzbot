@@ -13,7 +13,7 @@ void SpeedControl::setSpeed(float multiplier) {
     m_speed         = multiplier;
     applyToScheduler();
 
-    log::info("[BotToolkit] Speed set to {:.3f}x", m_speed);
+    log::info("[zzBot] Speed set to {:.3f}x", m_speed);
 }
 
 void SpeedControl::reset() {

@@ -3,7 +3,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_OSX_ARCHITECTURES "arm64")
 
-project(BotToolkit VERSION 1.0.0)
+project(zzBot VERSION 1.0.0)
 
 # ── Geode SDK ────────────────────────────────────────────────────────────────
 if (NOT DEFINED ENV{GEODE_SDK})

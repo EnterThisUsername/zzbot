@@ -1,14 +1,14 @@
 {
     "geode": "3.7.1",
     "gd": {
-        "win":     "2.2074",
-        "mac":     "2.2074",
-        "android": "2.2074"
+        "win":     "2.2081",
+        "mac":     "2.2081",
+        "android": "2.2081"
     },
-    "id":          "author.bot-toolkit",
-    "name":        "Bot Toolkit",
+    "id":          "enterthisusername.zzbot",
+    "name":        "zzBot",
     "version":     "1.0.0",
-    "developer":   "author",
+    "developer":   "EnterThisUsername",
     "description": "Frame-accurate replay bot, TAS toolkit, trajectory predictor, hitbox viewer, FPS/TPS control, and frame stepper for Geometry Dash.",
     "repository":  "https://github.com/EnterThisUsername/zzbot",
 
@@ -19,7 +19,7 @@
             "name":    "Target FPS",
             "description": "Render frame cap (0 = unlimited)",
             "type":    "float",
-            "default": 1440.0,
+            "default": 240.0,
             "min":     0.0,
             "max":     960.0
         },
@@ -27,7 +27,7 @@
             "name":    "Physics TPS",
             "description": "Physics tick rate (default 240)",
             "type":    "float",
-            "default": 1440.0,
+            "default": 240.0,
             "min":     1.0,
             "max":     960.0
         },

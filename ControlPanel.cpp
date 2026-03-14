@@ -50,7 +50,7 @@ CCMenuItemSpriteExtra* ControlPanel::makeButton(const char* label,
 // ─────────────────────────────────────────────────────────────────────────────
 
 bool ControlPanel::setup() {
-    this->setTitle("Bot Toolkit");
+    this->setTitle("zzBot");
 
     // ── Background ─────────────────────────────────────────────────────────
     auto* bg = CCLayerColor::create({ 18, 18, 32, 230 }, PANEL_W - 8, PANEL_H - 40);
@@ -288,7 +288,7 @@ void ControlPanel::onStop(CCObject*) {
 void ControlPanel::onSave(CCObject*) {
     // Open a native file-save dialog via Geode utils.
     file::FilePickOptions opts;
-    opts.filters = {{ "Bot Toolkit Macro (*.btm)", { "*.btm" } }};
+    opts.filters = {{ "zzBot Macro (*.zzb)", { "*"*.zzb" } }};
 
     file::pickFile(file::PickMode::SaveFile, opts, [](ghc::filesystem::path path) {
         ReplaySystem::get()->saveToFile(path.string());
@@ -297,7 +297,7 @@ void ControlPanel::onSave(CCObject*) {
 
 void ControlPanel::onLoad(CCObject*) {
     file::FilePickOptions opts;
-    opts.filters = {{ "Bot Toolkit Macro (*.btm)", { "*.btm" } }};
+    opts.filters = {{ "zzBot Macro (*.zzb)", { "*"*.zzb" } }};
 
     file::pickFile(file::PickMode::OpenFile, opts, [](ghc::filesystem::path path) {
         ReplaySystem::get()->loadFromFile(path.string());

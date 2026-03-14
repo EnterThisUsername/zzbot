@@ -10,5 +10,5 @@ void TPSModifier::setTPS(float tps) {
     tps     = std::clamp(tps, 1.0f, 10000.0f);
     m_tps   = tps;
     m_step  = 1.0f / tps;
-    log::info("[BotToolkit] TPS set to {:.1f} (step = {:.6f}s)", m_tps, m_step);
+    log::info("[zzBot] TPS set to {:.1f} (step = {:.6f}s)", m_tps, m_step);
 }
