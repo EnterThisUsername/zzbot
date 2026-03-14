@@ -1,6 +1,8 @@
 #pragma once
 #include <Geode/Geode.hpp>
 #include <Geode/ui/Popup.hpp>
+#include <Geode/utils/file.hpp>
+#include <filesystem>
 
 using namespace geode::prelude;
 
@@ -10,15 +12,11 @@ using namespace geode::prelude;
 // Opens via the pause menu button.  Provides controls for:
 //  • Recording / playback / stop
 //  • Save / Load macro from file
-//  • Speed slider  (0.01 – 2.0)
-//  • FPS number field
-//  • TPS number field
+//  • Speed presets  (0.01 – 2.0)
+//  • FPS presets
 //  • Hitbox toggle + trail toggle
 //  • Trajectory toggle
 //  • Frame stepper  (enter/exit; X/C/V are keyboard shortcuts)
-//
-// Implemented as a Geode Popup<> so it renders correctly on all platforms
-// and respects the pause menu layering.
 // ─────────────────────────────────────────────────────────────────────────────
 
 class ControlPanel : public Popup<> {
@@ -37,14 +35,12 @@ private:
     CCNode* buildStepperSection();
 
     // ── UI helpers ────────────────────────────────────────────────────────────
-    CCLabelTTF* makeLabel(const char* text, float fontSize, ccColor3B col = ccWHITE);
 
-    ButtonSprite* makeButtonSprite(const char* label,
-                                   ccColor3B bg = { 60, 60, 90 });
+    /// Create a BMFont label scaled to approximate the requested pixel size.
+    /// bigFont.fnt native height ≈ 57 px → scale = size / 57.
+    CCLabelBMFont* makeLabel(const char* text, float fontSize, ccColor3B col = ccWHITE);
 
-    CCMenuItemSpriteExtra* makeButton(const char* label,
-                                      SEL_MenuHandler handler,
-                                      ccColor3B bg = { 60, 60, 90 });
+    CCMenuItemSpriteExtra* makeButton(const char* label, SEL_MenuHandler handler);
 
     // ── Callbacks ─────────────────────────────────────────────────────────────
     void onRecord(CCObject*);
@@ -60,13 +56,17 @@ private:
     void onToggleTrail(CCObject*);
     void onToggleTrajectory(CCObject*);
 
-    // ── Status label updated by timer ─────────────────────────────────────────
+    // ── Status / info labels ──────────────────────────────────────────────────
     void refreshStatus(float);
-    CCLabelTTF* m_statusLabel = nullptr;
+    CCLabelBMFont* m_statusLabel = nullptr;
+    CCLabelBMFont* m_speedLabel  = nullptr;
+    CCLabelBMFont* m_fpsLabel    = nullptr;
+    CCLabelBMFont* m_tpsLabel    = nullptr;
 
-    // Speed / FPS / TPS input fields (simple text labels for now;
-    // full editing delegated to InputSettingNode in the Geode settings UI)
-    CCLabelTTF* m_speedLabel   = nullptr;
-    CCLabelTTF* m_fpsLabel     = nullptr;
-    CCLabelTTF* m_tpsLabel     = nullptr;
+    // ── File-picker Task listeners ────────────────────────────────────────────
+    // Geode 5.x uses a Task-based async API; EventListeners must stay alive
+    // for the duration of the native OS file dialog.
+    using PickTask = Task<Result<std::filesystem::path>>;
+    EventListener<PickTask> m_saveListener;
+    EventListener<PickTask> m_loadListener;
 };

@@ -7,13 +7,16 @@
 #include "HitboxViewer.hpp"
 #include "TrajectorySystem.hpp"
 
-#include <Geode/ui/TextInput.hpp>
-#include <Geode/utils/file.hpp>
+// std::filesystem is used throughout (replaces ghc::filesystem from Geode <4)
+#include <filesystem>
 
 // ─────────────────────────────────────────────────────────────────────────────
 
 static constexpr float PANEL_W = 460.f;
 static constexpr float PANEL_H = 340.f;
+
+// bigFont.fnt native height ≈ 57 px.  Scale factor to get desired px size.
+static constexpr float kBigFontNative = 57.f;
 
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -31,15 +34,19 @@ ControlPanel* ControlPanel::create() {
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-CCLabelTTF* ControlPanel::makeLabel(const char* text, float fontSize, ccColor3B col) {
-    auto* lbl = CCLabelTTF::create(text, "bigFont.fnt", fontSize);
-    if (lbl) lbl->setColor(col);
+CCLabelBMFont* ControlPanel::makeLabel(const char* text, float fontSize, ccColor3B col) {
+    // CCLabelBMFont is the correct class for GD's .fnt bitmap fonts.
+    // We scale to approximate the requested pixel height.
+    auto* lbl = CCLabelBMFont::create(text, "bigFont.fnt");
+    if (lbl) {
+        lbl->setColor(col);
+        lbl->setScale(fontSize / kBigFontNative);
+    }
     return lbl;
 }
 
 CCMenuItemSpriteExtra* ControlPanel::makeButton(const char* label,
-                                                 SEL_MenuHandler handler,
-                                                 ccColor3B bg)
+                                                 SEL_MenuHandler handler)
 {
     auto* spr = ButtonSprite::create(label, "goldFont.fnt", "GJ_button_04.png", 0.8f);
     return CCMenuItemSpriteExtra::create(spr, this, handler);
@@ -122,7 +129,6 @@ CCNode* ControlPanel::buildSpeedSection() {
     hdr->setPosition({ 0.f, 32.f });
     node->addChild(hdr);
 
-    // Speed preset buttons
     auto* menu = CCMenu::create();
     menu->setPosition(CCPointZero);
 
@@ -137,7 +143,6 @@ CCNode* ControlPanel::buildSpeedSection() {
         auto* spr = ButtonSprite::create(p.lbl, "bigFont.fnt", "GJ_button_06.png", 0.65f);
         auto* btn = CCMenuItemSpriteExtra::create(spr, this,
             [](CCObject* sender) {
-                // Speed is stored in the button's tag as int (val * 1000)
                 float spd = static_cast<float>(
                     static_cast<CCNode*>(sender)->getTag()) / 1000.f;
                 SpeedControl::get()->setSpeed(spd);
@@ -172,7 +177,6 @@ CCNode* ControlPanel::buildPerfSection() {
     auto* menu = CCMenu::create();
     menu->setPosition(CCPointZero);
 
-    // FPS presets
     struct FPSPreset { const char* lbl; float fps; };
     static const FPSPreset fpsP[] = {
         {"60",60.f},{"120",120.f},{"240",240.f},{"480",480.f},{"Unlim",0.f}
@@ -193,12 +197,13 @@ CCNode* ControlPanel::buildPerfSection() {
         x += spr->getContentSize().width + 4.f;
     }
 
-    // TPS label
     m_fpsLabel = makeLabel(
-        fmt::format("FPS: {:.0f}", FPSUnlocker::get()->targetFPS()).c_str(),
+        fmt::format("FPS:{:.0f} TPS:{:.0f}",
+            FPSUnlocker::get()->targetFPS(),
+            TPSModifier::get()->tps()).c_str(),
         8.f, { 220, 220, 220 });
     m_fpsLabel->setAnchorPoint({ 0.f, 0.f });
-    m_fpsLabel->setPosition({ x + 6.f, 14.f });
+    m_fpsLabel->setPosition({ x + 6.f, 8.f });
     node->addChild(m_fpsLabel);
 
     node->addChild(menu);
@@ -218,9 +223,9 @@ CCNode* ControlPanel::buildVisualSection() {
 
     struct Toggle { const char* lbl; SEL_MenuHandler sel; };
     Toggle toggles[] = {
-        {"Hitboxes",    menu_selector(ControlPanel::onToggleHitbox)},
-        {"HB Trail",    menu_selector(ControlPanel::onToggleTrail)},
-        {"Trajectory",  menu_selector(ControlPanel::onToggleTrajectory)},
+        {"Hitboxes",   menu_selector(ControlPanel::onToggleHitbox)},
+        {"HB Trail",   menu_selector(ControlPanel::onToggleTrail)},
+        {"Trajectory", menu_selector(ControlPanel::onToggleTrajectory)},
     };
 
     float x = 0.f;
@@ -262,7 +267,7 @@ CCNode* ControlPanel::buildStepperSection() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Callbacks
+// Replay callbacks
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ControlPanel::onRecord(CCObject*) {
@@ -285,32 +290,44 @@ void ControlPanel::onStop(CCObject*) {
     if (rs->isPlaying())   rs->stopPlayback();
 }
 
-void ControlPanel::onSave(CCObject*) {
-    // Open a native file-save dialog via Geode utils.
-    file::FilePickOptions opts;
-    opts.filters = {{ "zzBot Macro (*.zzb)", { "*"*.zzb" } }};
+// ─────────────────────────────────────────────────────────────────────────────
+// File picker callbacks — Geode 5.x Task-based API
+//
+// file::pick() returns a Task<Result<std::filesystem::path>>.
+// The EventListener (m_saveListener / m_loadListener) must remain alive until
+// the OS dialog closes, so they are stored as member variables.
+// ─────────────────────────────────────────────────────────────────────────────
 
-    file::pickFile(file::PickMode::SaveFile, opts, [](ghc::filesystem::path path) {
-        ReplaySystem::get()->saveToFile(path.string());
+void ControlPanel::onSave(CCObject*) {
+    file::FilePickOptions opts;
+    opts.filters = {{ "zzBot Macro (*.zzb)", { "*.zzb" } }};
+
+    m_saveListener.bind([](PickTask::Event* e) {
+        if (auto* val = e->getValue())
+            if (val->isOk())
+                ReplaySystem::get()->saveToFile(val->unwrap().string());
     });
+    m_saveListener.setFilter(file::pick(file::PickMode::SaveFile, opts));
 }
 
 void ControlPanel::onLoad(CCObject*) {
     file::FilePickOptions opts;
-    opts.filters = {{ "zzBot Macro (*.zzb)", { "*"*.zzb" } }};
+    opts.filters = {{ "zzBot Macro (*.zzb)", { "*.zzb" } }};
 
-    file::pickFile(file::PickMode::OpenFile, opts, [](ghc::filesystem::path path) {
-        ReplaySystem::get()->loadFromFile(path.string());
+    m_loadListener.bind([](PickTask::Event* e) {
+        if (auto* val = e->getValue())
+            if (val->isOk())
+                ReplaySystem::get()->loadFromFile(val->unwrap().string());
     });
+    m_loadListener.setFilter(file::pick(file::PickMode::OpenFile, opts));
 }
 
-void ControlPanel::onEnterStepper(CCObject*) {
-    FrameStepper::get()->enter();
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// Visual / stepper callbacks
+// ─────────────────────────────────────────────────────────────────────────────
 
-void ControlPanel::onExitStepper(CCObject*) {
-    FrameStepper::get()->exit();
-}
+void ControlPanel::onEnterStepper(CCObject*) { FrameStepper::get()->enter(); }
+void ControlPanel::onExitStepper(CCObject*)  { FrameStepper::get()->exit();  }
 
 void ControlPanel::onToggleHitbox(CCObject*) {
     auto* hv = HitboxViewer::get();
