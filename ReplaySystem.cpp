@@ -1,4 +1,5 @@
 #include "ReplaySystem.hpp"
+#include "TPSModifier.hpp"
 #include <fstream>
 #include <algorithm>
 #include <nlohmann/json.hpp>
@@ -15,9 +16,10 @@ ReplaySystem* ReplaySystem::get() {
 
 void ReplaySystem::startRecording() {
     m_macro.frames.clear();
-    m_macro.name = "unnamed";
-    m_state      = BotState::Recording;
-    log::info("[zzBot] Recording started.");
+    m_macro.name        = "unnamed";
+    m_macro.recordedTPS = TPSModifier::get()->tps();   // snapshot current TPS
+    m_state             = BotState::Recording;
+    log::info("[zzBot] Recording started (TPS: {:.1f}).", m_macro.recordedTPS);
 }
 
 void ReplaySystem::stopRecording() {
@@ -29,8 +31,6 @@ void ReplaySystem::stopRecording() {
 void ReplaySystem::recordInput(int tick, int button, bool isPress, bool player2) {
     if (m_state != BotState::Recording) return;
 
-    // De-duplicate: if the last frame for this button+player already has the
-    // same state, skip it (handles redundant input events).
     if (!m_macro.frames.empty()) {
         const auto& last = m_macro.frames.back();
         if (last.tick == tick && last.button == button &&
@@ -48,10 +48,30 @@ void ReplaySystem::startPlayback() {
         log::warn("[zzBot] No macro loaded.");
         return;
     }
+
+    // ── TPS mismatch warning ──────────────────────────────────────────────────
+    float currentTPS  = TPSModifier::get()->tps();
+    float recordedTPS = m_macro.recordedTPS;
+
+    if (std::abs(currentTPS - recordedTPS) > 0.5f) {
+        // Show a persistent Geode notification so the user can't miss it.
+        Notification::create(
+            fmt::format(
+                "TPS mismatch! Recorded at {:.0f} TPS, currently {:.0f} TPS. "
+                "Replay may desync.",
+                recordedTPS, currentTPS
+            ),
+            NotificationIcon::Warning,
+            5.0f
+        )->show();
+
+        log::warn("[zzBot] TPS mismatch: recorded={:.1f}, current={:.1f}",
+                  recordedTPS, currentTPS);
+    }
+
     m_playIndex = 0;
     m_state     = BotState::Playing;
-    log::info("[zzBot] Playback started ({} frames).",
-              m_macro.frames.size());
+    log::info("[zzBot] Playback started ({} frames).", m_macro.frames.size());
 }
 
 void ReplaySystem::stopPlayback() {
@@ -64,29 +84,23 @@ bool ReplaySystem::tickPlayback(int tick) {
 
     bool injected = false;
 
-    // Process all frames scheduled at or before this tick.
     while (m_playIndex < static_cast<int>(m_macro.frames.size()) &&
            m_macro.frames[m_playIndex].tick <= tick)
     {
         const InputFrame& f = m_macro.frames[m_playIndex];
 
-        // Retrieve the active PlayLayer and inject the stored input.
         auto* pl = PlayLayer::get();
         if (pl) {
-            auto* player = f.player2 ? pl->m_player2 : pl->m_player1;
-            if (player) {
-                if (f.isPress)
-                    pl->handleButton(true, f.button, !f.player2);
-                else
-                    pl->handleButton(false, f.button, !f.player2);
-            }
+            if (f.isPress)
+                pl->handleButton(true,  f.button, !f.player2);
+            else
+                pl->handleButton(false, f.button, !f.player2);
         }
 
         ++m_playIndex;
         injected = true;
     }
 
-    // End naturally when all inputs have been replayed.
     if (m_playIndex >= static_cast<int>(m_macro.frames.size()))
         stopPlayback();
 
@@ -98,15 +112,16 @@ bool ReplaySystem::tickPlayback(int tick) {
 bool ReplaySystem::saveToFile(const std::string& path) const {
     try {
         json root;
-        root["name"]   = m_macro.name;
-        root["frames"] = json::array();
+        root["name"]        = m_macro.name;
+        root["recordedTPS"] = m_macro.recordedTPS;
+        root["frames"]      = json::array();
 
         for (const auto& f : m_macro.frames) {
             root["frames"].push_back({
-                {"tick",    f.tick},
-                {"button",  f.button},
-                {"press",   f.isPress},
-                {"p2",      f.player2}
+                {"tick",   f.tick},
+                {"button", f.button},
+                {"press",  f.isPress},
+                {"p2",     f.player2}
             });
         }
 
@@ -128,7 +143,8 @@ bool ReplaySystem::loadFromFile(const std::string& path) {
 
         json root = json::parse(ifs);
         m_macro.frames.clear();
-        m_macro.name = root.value("name", "loaded");
+        m_macro.name        = root.value("name", "loaded");
+        m_macro.recordedTPS = root.value("recordedTPS", 240.0f);
 
         for (const auto& j : root["frames"]) {
             m_macro.frames.push_back({
@@ -139,11 +155,10 @@ bool ReplaySystem::loadFromFile(const std::string& path) {
             });
         }
 
-        // Ensure frames are ordered by tick (in case of manual edits).
         std::sort(m_macro.frames.begin(), m_macro.frames.end());
 
-        log::info("[zzBot] Macro '{}' loaded ({} frames).",
-                  m_macro.name, m_macro.frames.size());
+        log::info("[zzBot] Macro '{}' loaded ({} frames, recorded TPS: {:.1f}).",
+                  m_macro.name, m_macro.frames.size(), m_macro.recordedTPS);
         return true;
     } catch (const std::exception& e) {
         log::error("[zzBot] Load failed: {}", e.what());

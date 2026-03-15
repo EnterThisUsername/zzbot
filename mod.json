@@ -7,37 +7,35 @@
     },
     "id":          "enterthisusername.zzbot",
     "name":        "zzBot",
-    "version":     "1.0.0",
+    "version":     "1.1.0",
     "developer":   "EnterThisUsername",
     "description": "Frame-accurate replay bot, TAS toolkit, trajectory predictor, hitbox viewer, FPS/TPS control, and frame stepper for Geometry Dash.",
     "repository":  "https://github.com/EnterThisUsername/zzbot",
 
-    "dependencies": [],
-
     "settings": {
         "target-fps": {
-            "name":    "Target FPS",
+            "name":        "Target FPS",
             "description": "Render frame cap (0 = unlimited)",
-            "type":    "float",
-            "default": 240.0,
-            "min":     0.0,
-            "max":     960.0
+            "type":        "float",
+            "default":     240.0,
+            "min":         0.0,
+            "max":         960.0
         },
         "target-tps": {
-            "name":    "Physics TPS",
+            "name":        "Physics TPS",
             "description": "Physics tick rate (default 240)",
-            "type":    "float",
-            "default": 240.0,
-            "min":     1.0,
-            "max":     960.0
+            "type":        "float",
+            "default":     240.0,
+            "min":         1.0,
+            "max":         960.0
         },
         "speed-multiplier": {
-            "name":    "Speed Multiplier",
+            "name":        "Speed Multiplier",
             "description": "Game speed scale (1.0 = normal, 0.5 = half, 0.01 = 1%)",
-            "type":    "float",
-            "default": 1.0,
-            "min":     0.01,
-            "max":     10.0
+            "type":        "float",
+            "default":     1.0,
+            "min":         0.01,
+            "max":         10.0
         },
         "show-hitboxes": {
             "name":    "Show Hitboxes",
@@ -50,12 +48,12 @@
             "default": false
         },
         "hitbox-trail-length": {
-            "name":    "Hitbox Trail Length",
+            "name":        "Hitbox Trail Length",
             "description": "Number of frames to keep in the trail",
-            "type":    "int",
-            "default": 240,
-            "min":     10,
-            "max":     2400
+            "type":        "int",
+            "default":     240,
+            "min":         10,
+            "max":         2400
         },
         "show-trajectory": {
             "name":    "Show Trajectory",
@@ -68,6 +66,24 @@
             "default": 240,
             "min":     30,
             "max":     960
+        },
+        "click-sound-enabled": {
+            "name":        "Click Sounds",
+            "description": "Play a sound on press and release at the exact input tick during playback",
+            "type":        "bool",
+            "default":     false
+        },
+        "press-sound": {
+            "name":        "Press Sound Filename",
+            "description": "Sound file to play on button press (must be in the mod's resources folder)",
+            "type":        "string",
+            "default":     "click_press.ogg"
+        },
+        "release-sound": {
+            "name":        "Release Sound Filename",
+            "description": "Sound file to play on button release (must be in the mod's resources folder)",
+            "type":        "string",
+            "default":     "click_release.ogg"
         }
     }
 }

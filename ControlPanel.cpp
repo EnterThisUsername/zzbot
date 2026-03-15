@@ -6,16 +6,12 @@
 #include "FrameStepper.hpp"
 #include "HitboxViewer.hpp"
 #include "TrajectorySystem.hpp"
+#include "ClickSound.hpp"
 
-// std::filesystem is used throughout (replaces ghc::filesystem from Geode <4)
 #include <filesystem>
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 static constexpr float PANEL_W = 460.f;
 static constexpr float PANEL_H = 340.f;
-
-// bigFont.fnt native height ≈ 57 px.  Scale factor to get desired px size.
 static constexpr float kBigFontNative = 57.f;
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -30,13 +26,7 @@ ControlPanel* ControlPanel::create() {
     return nullptr;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
 CCLabelBMFont* ControlPanel::makeLabel(const char* text, float fontSize, ccColor3B col) {
-    // CCLabelBMFont is the correct class for GD's .fnt bitmap fonts.
-    // We scale to approximate the requested pixel height.
     auto* lbl = CCLabelBMFont::create(text, "bigFont.fnt");
     if (lbl) {
         lbl->setColor(col);
@@ -45,26 +35,20 @@ CCLabelBMFont* ControlPanel::makeLabel(const char* text, float fontSize, ccColor
     return lbl;
 }
 
-CCMenuItemSpriteExtra* ControlPanel::makeButton(const char* label,
-                                                 SEL_MenuHandler handler)
-{
+CCMenuItemSpriteExtra* ControlPanel::makeButton(const char* label, SEL_MenuHandler handler) {
     auto* spr = ButtonSprite::create(label, "goldFont.fnt", "GJ_button_04.png", 0.8f);
     return CCMenuItemSpriteExtra::create(spr, this, handler);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// setup
-// ─────────────────────────────────────────────────────────────────────────────
 
 bool ControlPanel::setup() {
     this->setTitle("zzBot");
 
-    // ── Background ─────────────────────────────────────────────────────────
     auto* bg = CCLayerColor::create({ 18, 18, 32, 230 }, PANEL_W - 8, PANEL_H - 40);
     bg->setPosition({ 4, 4 });
     m_mainLayer->addChild(bg, -1);
 
-    // ── Sections ───────────────────────────────────────────────────────────
     float yOff = PANEL_H - 56.f;
     float xPad = 14.f;
 
@@ -81,7 +65,6 @@ bool ControlPanel::setup() {
     addSection(buildVisualSection(),  38.f);
     addSection(buildStepperSection(), 38.f);
 
-    // ── Status label ───────────────────────────────────────────────────────
     m_statusLabel = makeLabel("Status: Idle", 9.f, { 180, 255, 180 });
     m_statusLabel->setAnchorPoint({ 0.f, 0.f });
     m_statusLabel->setPosition({ xPad, 10.f });
@@ -134,8 +117,8 @@ CCNode* ControlPanel::buildSpeedSection() {
 
     struct Preset { const char* lbl; float val; };
     static const Preset presets[] = {
-        {"0.01x", 0.01f}, {"0.1x", 0.1f}, {"0.25x", 0.25f},
-        {"0.5x",  0.5f},  {"1.0x", 1.0f}, {"2.0x",  2.0f}
+        {"0.01x",0.01f},{"0.1x",0.1f},{"0.25x",0.25f},
+        {"0.5x", 0.5f}, {"1.0x",1.0f},{"2.0x", 2.0f}
     };
 
     float x = 0.f;
@@ -226,6 +209,7 @@ CCNode* ControlPanel::buildVisualSection() {
         {"Hitboxes",   menu_selector(ControlPanel::onToggleHitbox)},
         {"HB Trail",   menu_selector(ControlPanel::onToggleTrail)},
         {"Trajectory", menu_selector(ControlPanel::onToggleTrajectory)},
+        {"Clicks",     menu_selector(ControlPanel::onToggleClickSound)},
     };
 
     float x = 0.f;
@@ -243,7 +227,7 @@ CCNode* ControlPanel::buildVisualSection() {
 CCNode* ControlPanel::buildStepperSection() {
     auto* node = CCNode::create();
 
-    auto* hdr = makeLabel("Frame Stepper  [X=fwd  C=back  V=exit]", 9.f, { 200, 200, 255 });
+    auto* hdr = makeLabel("Frame Stepper  [F = advance    G = exit]", 9.f, { 200, 200, 255 });
     hdr->setAnchorPoint({ 0.f, 1.f });
     hdr->setPosition({ 0.f, 32.f });
     node->addChild(hdr);
@@ -267,7 +251,7 @@ CCNode* ControlPanel::buildStepperSection() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Replay callbacks
+// Callbacks
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ControlPanel::onRecord(CCObject*) {
@@ -279,9 +263,8 @@ void ControlPanel::onRecord(CCObject*) {
 }
 
 void ControlPanel::onPlay(CCObject*) {
-    auto* rs = ReplaySystem::get();
-    if (!rs->isPlaying())
-        rs->startPlayback();
+    if (!ReplaySystem::get()->isPlaying())
+        ReplaySystem::get()->startPlayback();
 }
 
 void ControlPanel::onStop(CCObject*) {
@@ -289,14 +272,6 @@ void ControlPanel::onStop(CCObject*) {
     if (rs->isRecording()) rs->stopRecording();
     if (rs->isPlaying())   rs->stopPlayback();
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// File picker callbacks — Geode 5.x Task-based API
-//
-// file::pick() returns a Task<Result<std::filesystem::path>>.
-// The EventListener (m_saveListener / m_loadListener) must remain alive until
-// the OS dialog closes, so they are stored as member variables.
-// ─────────────────────────────────────────────────────────────────────────────
 
 void ControlPanel::onSave(CCObject*) {
     file::FilePickOptions opts;
@@ -322,10 +297,6 @@ void ControlPanel::onLoad(CCObject*) {
     m_loadListener.setFilter(file::pick(file::PickMode::OpenFile, opts));
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Visual / stepper callbacks
-// ─────────────────────────────────────────────────────────────────────────────
-
 void ControlPanel::onEnterStepper(CCObject*) { FrameStepper::get()->enter(); }
 void ControlPanel::onExitStepper(CCObject*)  { FrameStepper::get()->exit();  }
 
@@ -347,8 +318,14 @@ void ControlPanel::onToggleTrajectory(CCObject*) {
     Mod::get()->setSavedValue("show-trajectory", ts->isEnabled());
 }
 
+void ControlPanel::onToggleClickSound(CCObject*) {
+    auto* cs = ClickSound::get();
+    cs->setEnabled(!cs->isEnabled());
+    Mod::get()->setSavedValue("click-sound-enabled", cs->isEnabled());
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// Status refresh timer
+// Status refresh
 // ─────────────────────────────────────────────────────────────────────────────
 
 void ControlPanel::refreshStatus(float) {
